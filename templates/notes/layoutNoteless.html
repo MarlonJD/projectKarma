@@ -1,0 +1,199 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+        <!-- documentation at http://getbootstrap.com/docs/4.0/, alternative themes at https://bootswatch.com/4-alpha/ -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        
+        <!-- Font Awesome-->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+
+        <!-- Theme included stylesheets -->
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+        <link href="https://cdn.quilljs.com/1.3.6/quill.bubble.css" rel="stylesheet">
+
+        <link rel="stylesheet" type="text/css" href="{% static 'notes/style.css' %}">
+
+        <title>project50 | {% block SiteTitle %}{% endblock %}</title>
+    </head>
+
+    <body>
+        <div class="wrapper">
+        <!-- Sidebar Holder -->
+            <nav id="sidebar">
+                <div class="sidebar-header">
+                    <div class="row">
+                        {% if user.is_authenticated %}
+                            <div class="col-12">
+                                <div class="profile-usertitle-startup pl-2 text-sidebar">
+                                    {% for startup in startup %}{{ startup.name }}{% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4 avatar">
+                                    <img class="img-responsive" id="demo-image" src="https://api.adorable.io/avatars/75/{{ user.email }}" alt="avatar-image">
+                            </div>
+                            <div class="col-md-8 pb-4 pt-2">
+                                <div class="profile-usertitle-name">
+                                    {{ user.name }}
+                                </div>
+                                <div class="profile-usertitle-job">
+                                    {% for startup in startup %}
+                                        {% if request.user in startup.founder.all %}Founder{% else %}Employee{% endif %}
+                                    {% endfor %}
+                                </div>  
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-sidebar">
+                    <span>Teams</span>
+                    <a class="d-flex align-items-center text-muted" href="#">
+                            <i class="fas fa-plus-circle"></i>
+                    </a>
+                </h6>
+                <ul class="list-unstyled components">
+                    {% for startup in startups %}
+                    <li>
+                        <a id="{{ startup.perma }}" data-note-name="{{ startup.name }}" class="nav-link notebook-context" href="/team/{{ startup.perma }}/">
+                            <i class="fas fa-users"></i> {{ startup.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <a href="/createTeam/" class="btn btn-outline-info ml-2">Create New Team</a>
+            </nav>
+            
+
+                        <!-- Page Content Holder -->
+            <div id="content">
+                <nav class="navbar navbar-default">
+                    <div class="container-fluid">
+
+                        <div class="navbar-header">
+                            <button type="button" id="sidebarCollapse" class="btn navbar-btn btn-sidebar">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <ul class="nav justify-content-end">
+                                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{% url 'logout'%}?next={{request.path}}">Logout</a></li>
+                            </ul>
+                        </div>
+                        
+                    </div>
+                </nav>
+                {% block breadcrumb %}
+                {% endblock %}
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+        <!-- AddProject Modal -->
+        <div class="modal fade" id="addProject" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">Add Project</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addProjectForm" method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                          <label for="projectName" class="col-form-label">Project Name:</label>
+                          <input type="text" class="form-control" id="projectName" name="projectName">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button id="addProjectButton" type="submit" class="btn btn-primary" form="addProjectForm">Add New Project</button>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rename Modal -->
+        <div class="modal fade" id="renamePFN" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="RenamePFNLabel">Rename: </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="renamePFNForm" method="post">
+                    <div class="form-group">
+                        <input type="hidden" class="form-control" id="oid" name="oid">
+                        <input type="hidden" class="form-control" id="pfn" name="pfn">
+                        <label for="newName" class="col-form-label">Name:</label>
+                        <input type="text" class="form-control" id="newName" name="newName">
+                    </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button id="renamePFNButton" type="button" class="btn btn-primary" form="renamePFNForm">Change</button>
+                </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        
+        <!-- Include the Quill library -->
+        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+        <!-- Notify Js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/notify/0.4.2/notify.min.js"></script>
+
+        <!-- jQuery contextMenu -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.ui.position.js"></script>
+
+        {% csrf_token %}
+        <script type="text/javascript">
+        // using jQuery
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+        </script>
+        
+        <script>
+        function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        // SideNav Initialization
+        $(document).ready(function () {
+            $('#sidebarCollapse').on('click', function () {
+            $('#sidebar, #content').toggleClass('active');
+            $('.collapse.in').toggleClass('in');
+            $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+            $('[data-toggle="popover"]').popover()
+            });
+        });
+        </script>
+
+        {% block script %}
+        {% endblock %}
+    </body>
+</html>

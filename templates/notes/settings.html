@@ -1,0 +1,371 @@
+{% extends 'notes/layout.html' %}
+
+{% block SiteTitle %} Settings {% endblock %}
+
+{% block content %}
+    {% if startup %}
+        <div class="row">
+        {% for startup in startup %}
+            <h1 class="col-12">Team</h1>
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ startup.name }}</h5>
+                        <p class="card-text">{{ startup.perma }}</p>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Founders <span class="badge badge-secondary">{{ startup.founder.count }}</span> :</strong>
+                            {% for founder in startup.founder.all %} 
+                                <a href="#" class="startup-founders" data-founder="{{ founder.email }}">
+                                    <span class="badge badge-primary strike">
+                                        <i class="ico"></i> {{ founder.name }}
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        </li>
+                        <li class="list-group-item"><strong>Members <span class="badge badge-secondary">{{ startup.employee.count }}</span> :</strong>
+                            {% for employee in startup.employee.all %}
+                                <a href="#" class="startup-members" data-founder="{{ employee.email }}">
+                                    <span class="badge badge-success strike">
+                                        <i class="ico"></i> {{ employee.name }} 
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        </li>
+                    </ul>
+                    <div class="card-body">
+                        <a class="btn btn-outline-info" data-toggle="modal" data-target="#addFM" data-fm="Founder" data-oid="0" href="/team/{{ startup.perma }}/" class="card-link">Add Founder</a>
+                        <a class="btn btn-outline-info" data-toggle="modal" data-target="#addFM" data-fm="Member" data-oid="1" href="/team/{{ startup.perma }}/" class="card-link">Add Member</a>
+                    </div>
+                </div>
+            </div>
+            <h1 class="col-12">Projects</h1>
+            {% for project in startup.startup_project_set.all %}
+            {% if request.user in project.employee.all %}
+            <div class="col-md-6 col-12 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ project.name }}</h5>
+                        <p class="card-text">Owner: {{ project.creator.name }}</p>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Members <span class="badge badge-secondary">{{ project.employee.count }}</span> :</strong>
+                            {% for employee in project.employee.all %}
+                                <a href="#" class="project-members" data-member="{{ employee.email }}" data-pid="{{ project.id }}">  
+                                    <span class="badge badge-success strike">
+                                    <i class="ico"></i> {{ employee.name }}
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        </li>
+                        <li class="list-group-item"><strong>Folders :</strong>
+                            {% for folder in project.project_folder_set.all %}{% if request.user in folder.employee.all %}
+                                <a href="folder/{{ folder.id }}/" class="folders" data-fid="{{ folder.id }}">
+                                    <span class="badge badge-info ftrike">
+                                        <i class="ico"></i> {{ folder.name }}
+                                    </span>
+                                </a>
+                            {% endif %}{% endfor %}
+                        </li>
+                    </ul>
+                    <div class="card-body">
+                        <a class="btn btn-outline-info" data-toggle="modal" data-target="#addMemberProject" data-fm="Member" data-pid="{{ project.id }}" href="/team/{{ startup.perma }}/" class="card-link">Add Member to Project</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        {% endfor %}
+        </div>      
+    {% else %}
+        <div class="jumbotron">
+            <h1 class="display-4">Hello, {{ user.name }}!</h1>
+            <p class="lead">We happy to see to you here. You are not in any Team. If you're a founder, create your team</p>
+            <hr class="my-4">
+            <p>If you're an employee or a customer, send your e-mail adress to the team. You can say "Hey get me in!"</p>
+            <a class="btn btn-primary btn-lg" href="createTeam/" role="button">Create your team</a>
+          </div>
+    {% endif %}
+
+    <!-- Add Founder/Member Modal -->
+    <div class="modal fade" id="addFM" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="RenamePFNLabel"> </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addFMForm" method="post" autocomplete="off">
+                <div id="response"></div>
+                <div class="form-group">
+                    <input type="hidden" class="form-control" id="oid" name="oid">
+                    <div class="input-group">
+                        <input type="email" class="form-control" id="emailText" name="emailText">
+                        <div class="input-group-append">
+                            <button id="searchButton" class="btn btn-outline-secondary" type="button">Search</button>
+                        </div>
+                    </div>
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <span id="addFMButtons"></span>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member to Project Modal -->
+    <div class="modal fade" id="addMemberProject" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="RenamePFNLabel"> </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addMemberProjectForm" method="post" autocomplete="off">
+                <div id="response"></div>
+                <div class="form-group">
+                    <input type="hidden" name="pid" id="pid">
+                    <select name="userSelect" id="userSelect" class="selectpicker form-control" data-live-search="true">
+                        <option value="" disabled selected>Select a user</option>
+                        {% for startup in startup %}
+                            {% for employee in startup.employee.all %}
+                                {% if request.user.email != employee.email %}
+                                    <option value="{{ employee.email }}" data-tokens="{{ employee.email }}">
+                                            {{ employee.name }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </select>
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button id="addFMButton" type="submit" class="btn btn-primary" form="addMemberProjectForm">Add</button>
+            </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+<script>
+$(function() {
+    $('select').selectpicker();
+
+    $(".strike").hover(function() {
+        $(this).toggleClass('far fa-trash-alt');
+    });
+
+    $(".ftrike").hover(function() {
+        $(this).toggleClass('far fa-eye');
+    });
+    
+    // Add Project Function
+    $('#addFM').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget)
+        var recipient = button.data('fm')
+        var oid = button.data('oid')
+        var modal = $(this)
+        modal.find('.modal-title').text('Add new ' + recipient)
+        modal.find('#oid').val(oid)
+    })
+
+    $('#addFMForm').on('keyup keypress', function(e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode === 13) { 
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    $("#searchButton").on('click', function postinput(){
+        var matchvalue = $('#emailText').val(); // this.value
+        $.ajax({ 
+            url: '/searchUser/',
+            data: { email: matchvalue },
+            type: 'post'
+        }).done(function(responseData) {
+            //console.log('Done: ', responseData);
+            if (responseData['success']) {
+                $("#response").html('<div class="alert alert-success" role="alert">Found User!</div>');
+                $('#addFMButtons').html('<button id="addFMButton" type="submit" class="btn btn-primary" form="addFMForm">Add</button>');
+            } else if (responseData['failed']) {
+                $("#response").html('<div class="alert alert-danger" role="alert">Could not found User!</div>');
+                $("#addFMButton").attr('disabled', 'disabled');
+                $("#addFMForm").submit(function(e) {
+                    e.preventDefault();
+                });
+            }
+        }).fail(function() {
+            console.log('Failed');
+        });
+    });
+
+    $("#addFMForm").submit(function(e) {
+        $.ajax({
+            type:"POST",
+            url:"/team/{% for startup in startup %}{{ startup.perma }}{% endfor %}/addFM/",
+            data: {
+                'oid': $("#oid").val(),
+                'userMail': $("#emailText").val(),
+                },
+            success: function(data){
+                if (data['success']) {
+                    history.go(0);
+                } else {
+                    $.notify("Error: You cannot do this", "error");
+                }
+            },
+            error: function(data){
+                $.notify("Error: Member couldn't added", "error");
+            }
+        })
+        .done(function (data) { 
+            $('#addProject').modal('hide')
+        });
+        e.preventDefault();
+    });
+
+    // Add Member to Project Function
+    $('#addMemberProject').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget)
+        var recipient = button.data('fm')
+        var pid = button.data('pid')
+        var modal = $(this)
+        modal.find('.modal-title').text('Add new ' + recipient)
+        modal.find('#pid').val(pid)
+    })
+
+    $("#addMemberProject").submit(function(e) {
+        $.ajax({
+            type:"POST",
+            url:"/team/{% for startup in startup %}{{ startup.perma }}{% endfor %}/addPMember/",
+            data: {
+                'oid': 0,
+                'pid': $("#pid").val(),
+                'userMail': $("#userSelect").val()
+                },
+            success: function(data){
+                if (data['success']) {
+                    history.go(0);
+                } else {
+                    $.notify("Error: You cannot add members to the project you don't own", "error");
+                    console.log(data);
+                }
+            },
+            error: function(data){
+                $.notify("Error: Member couldn't added", "error");
+            }
+        })
+        .done(function (data) { 
+            $('#addProject').modal('hide')
+        });
+        e.preventDefault();
+    });
+
+    // Remove Founder
+    $('.startup-founders').on('click', function () {
+        let userMail = $(this).data('founder');
+        //console.log(userMail);
+        $.ajax({
+            type:"POST",
+            url:"/team/{% for startup in startup %}{{ startup.perma }}{% endfor %}/addFM/",
+            data: {
+                'oid': "2",
+                'userMail': userMail,
+                },
+            success: function(data){
+                if (data['success']) {
+                    history.go(0);
+                }
+                else if (data['failed'] == 0) {
+                    $.notify("Error: You cannot remove yourself", "error");
+                } else {
+                    $.notify("Error: You cannot do this", "error");
+                }
+            },
+            error: function(data){
+                $.notify("Error: Member couldn't added", "error");
+            }
+        })
+        .done(function (data) { 
+            $('#addProject').modal('hide')
+        });
+    });
+
+    // Remove Member
+    $('.startup-members').on('click', function () {
+        let userMail = $(this).data('founder');
+        //console.log(userMail);
+        $.ajax({
+            type:"POST",
+            url:"/team/{% for startup in startup %}{{ startup.perma }}{% endfor %}/addFM/",
+            data: {
+                'oid': "3",
+                'userMail': userMail,
+                },
+            success: function(data){
+                if (data['success']) {
+                    history.go(0);
+                }
+                else if (data['failed'] == 0) {
+                    $.notify("Error: You cannot remove yourself", "error");
+                } else {
+                    $.notify("Error: You cannot do this", "error");
+                }
+            },
+            error: function(data){
+                $.notify("Error: Member couldn't added", "error");
+            }
+        })
+        .done(function (data) { 
+            $('#addProject').modal('hide')
+        });
+    });
+
+    // Remove Project Member
+    $(".project-members").on('click', function() {
+        let userMail = $(this).data('member');
+        let pid = $(this).data('pid');
+        $.ajax({
+            type:"POST",
+            url:"/team/{% for startup in startup %}{{ startup.perma }}{% endfor %}/addPMember/",
+            data: {
+                'oid': 1,
+                'pid': pid,
+                'userMail': userMail,
+                },
+            success: function(data){
+                if (data['success']) {
+                    history.go(0);
+                }
+                else if (data['failed'] == 0) {
+                    $.notify("Error: You cannot remove yourself", "error");
+                } else {
+                    $.notify("Error: You cannot add/remove members to the project you don't own", "error");
+                }
+            },
+            error: function(data){
+                $.notify("Error: Member couldn't added", "error");
+            }
+        })
+        .done(function (data) { 
+            //
+        });
+    });
+    
+});
+</script>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'notes/layout.html' %}
+
+{% block SiteTitle %}{{ notebook.name | truncatechars:17 }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a>{{ notebook.folder.project }}</a></li>
+            <li class="breadcrumb-item"><a>{{ notebook.folder }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ notebook.name }}</li>
+        </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    <div id="scrolling-container">
+        <div id="title"><h1>{{ notebook.name }}</h1></div>
+        <div id="editor">Lorem ipsum dolor sit amet</div>
+    </div>
+{% endblock %}
+
+
+{% block script %}
+<script>
+    var toolbarOptions = [
+    ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+    ['blockquote', 'code-block'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'align': [] }],
+    [{ 'color': [] }],
+    ['clean']                                         // remove formatting button
+    ];
+
+    var quill = new Quill('#editor', {
+    modules: {
+        toolbar: toolbarOptions
+    },
+    theme: 'snow',
+    
+    placeholder: 'Compose an epic...'
+
+    });
+
+    var title = new Quill('#title', {
+        modules: {
+            toolbar: toolbarOptions
+        },
+        theme: 'bubble'
+    });
+
+    quill.root.spellcheck = false;
+    title.root.spellcheck = false;
+
+    texty = "{{ notebook.content|escapejs }}"
+    if (texty != "None") {  
+        textyjson = JSON.parse(texty);
+        quill.setContents(textyjson);
+    }
+    
+
+    var Delta = Quill.import('delta');
+    
+    var change0 = new Delta();
+    title.on('text-change', function(delta) {
+        change0 = change0.compose(delta);       
+        $.ajax({
+            'csrftoken': csrftoken,
+            type:"POST",
+            url:"/renamePFN/",
+            data: {
+                'did': "0",
+                'oid': "2",
+                'pfn': "{{ notebook.id }}",
+                'newName': title.getText()
+                }  
+        });
+        console.log("Title Changed")
+        return false;
+    });
+
+    var change1 = new Delta();
+    quill.on('text-change', function(delta) {
+        change1 = change1.compose(delta);
+        array = JSON.stringify(quill.getContents())
+    });
+
+    // Save periodically
+    setInterval(function() {
+    if (change1.length() > 0) {
+        $.ajax({
+            type:"POST",
+            url:"/updateContent/{{ notebook.id }}/",
+            data: {
+                'doc': JSON.stringify(quill.getContents())
+                },
+            success: function(data){
+                console.log("Changes Saved", data)
+            }
+        });
+        return false;
+
+        change1 = new Delta();
+    }
+    }, 5*1000);
+    
+    // Store accumulated changes
+
+    title.formatLine(0, 1, 'align', 'center');
+
+</script>
+{% endblock %}

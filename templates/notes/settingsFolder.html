@@ -1,0 +1,232 @@
+{% extends 'notes/layout.html' %}
+
+{% block SiteTitle %} Settings {% endblock %}
+
+{% block content %}
+    {% if folder %}
+        <div class="row">
+            <h1 class="col-12">Folder</h1>
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ folder.name }}</h5>
+                        <p class="card-text">Owner: {{ folder.creator.name }}</p>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Members <span class="badge badge-secondary">{{ folder.employee.count }}</span> :</strong>
+                            {% for employee in folder.employee.all %}
+                                <a href="#" class="folder-members" data-member="{{ employee.email }}" data-fnid="{{ folder.id }}">  
+                                    <span class="badge badge-success strike">
+                                    <i class="ico"></i> {{ employee.name }}
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        </li>
+                        <li class="list-group-item"><strong>Notes :</strong>
+                            {% for note in folder.folder_notebook_set.all %}{% if request.user in note.employee.all %}
+                                <span class="badge badge-info ftrike">
+                                    <i class="ico"></i> {{ note.name }}
+                                </span>
+                            {% endif %}{% endfor %}
+                        </li>
+                    </ul>
+                    <div class="card-body">
+                        <a class="btn btn-outline-info" data-toggle="modal" data-target="#addMemberFN" data-fnote="{{ folder.name }}" data-fnid="{{ folder.id }}" data-oid="0" href="#" class="card-link">Add Member to Folder</a>
+                    </div>
+                </div>
+            </div>
+
+            <h1 class="col-12">Notes</h1>
+            {% for note in folder.folder_notebook_set.all %}
+            {% if request.user in note.employee.all %}
+            <div class="col-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ note.name }}</h5>
+                        <p class="card-text">Owner: {{ note.creator.name }}</p>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Members <span class="badge badge-secondary">{{ note.employee.count }}</span> :</strong>
+                            {% for employee in note.employee.all %}
+                                <a href="#" class="note-members" data-member="{{ employee.email }}" data-fnid="{{ note.id }}">  
+                                    <span class="badge badge-success strike">
+                                    <i class="ico"></i> {{ employee.name }}
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        </li>
+                    </ul>
+                    <div class="card-body">
+                        <a class="btn btn-outline-info" data-toggle="modal" data-target="#addMemberFN" data-fnote="{{ note.name }}" data-fnid="{{ note.id }}" data-oid="1" data-pid="{{ project.id }}" href="/team/{{ startup.perma }}/" class="card-link">Add Member to Note</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>      
+    {% else %}
+        <div class="jumbotron">
+            <h1 class="display-4">Hello, {{ user.name }}!</h1>
+            <p class="lead">We happy to see to you here. You are not in any Team. If you're a founder, create your team</p>
+            <hr class="my-4">
+            <p>If you're an employee or a customer, send your e-mail adress to the team. You can say "Hey get me in!"</p>
+            <a class="btn btn-primary btn-lg" href="createTeam/" role="button">Create your team</a>
+          </div>
+    {% endif %}
+
+    <!-- Add Folder-Member Modal -->
+    <div class="modal fade" id="addMemberFN" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="RenamePFNLabel"> </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addMemberFNForm" method="post" autocomplete="off">
+                <div id="response"></div>
+                <div class="form-group">
+                    <input type="hidden" name="oid" id="oid">
+                    <input type="hidden" name="fnid" id="fnid">
+                    <select name="userSelect" id="userSelect" class="selectpicker form-control" data-live-search="true">
+                        <option value="" disabled selected>Select a user</option>
+                        {% for startup in startup %}
+                            {% for employee in startup.employee.all %}
+                                {% if request.user.email != employee.email %}
+                                    <option value="{{ employee.email }}" data-tokens="{{ employee.email }}">
+                                            {{ employee.name }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </select>
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button id="addFMButton" type="submit" class="btn btn-primary" form="addMemberFNForm">Add</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+$(function() {
+    $('select').selectpicker();
+
+    $(".strike").hover(function() {
+        $(this).toggleClass('far fa-trash-alt');
+    });
+    
+    // Add Project Function
+    $('#addMemberFN').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var recipient = button.data('fnote');
+        var oid = button.data('oid');
+        var fnid = button.data('fnid');
+        var modal = $(this);
+        modal.find('.modal-title').text('Add new member to ' + recipient);
+        modal.find('#fnid').val(fnid);
+        modal.find('#oid').val(oid);
+    })
+
+    $("#addMemberFN").submit(function(e) {
+        $.ajax({
+            type:"POST",
+            url:"/team/{% for startup in startup %}{{ startup.perma }}{% endfor %}/addFNMember/",
+            data: {
+                'oid': $("#oid").val(),
+                'fnid': $("#fnid").val(),
+                'userMail': $("#userSelect").val()
+                },
+            success: function(data){
+                if (data['success']) {
+                    history.go(0);
+                } else {
+                    $.notify("Error: You cannot add members to the project you don't own", "error");
+                    console.log(data);
+                }
+            },
+            error: function(data){
+                $.notify("Error: Member couldn't added", "error");
+            }
+        })
+        .done(function (data) { 
+            $('#addProject').modal('hide')
+        });
+        e.preventDefault();
+    });
+
+    // Remove Note Member
+    $(".folder-members").on('click', function() {
+        let userMail = $(this).data('member');
+        let fnid = $(this).data('fnid');
+        $.ajax({
+            type:"POST",
+            url:"/team/{% for startup in startup %}{{ startup.perma }}{% endfor %}/addFNMember/",
+            data: {
+                'oid': 2,
+                'fnid': fnid,
+                'userMail': userMail,
+                },
+            success: function(data){
+                if (data['success']) {
+                    history.go(0);
+                }
+                else if (data['failed'] == 0) {
+                    $.notify("Error: You cannot remove yourself", "error");
+                } else {
+                    $.notify("Error: You cannot add/remove members to the project you don't own", "error");
+                }
+            },
+            error: function(data){
+                $.notify("Error: Member couldn't added", "error");
+            }
+        })
+        .done(function (data) { 
+            //
+        });
+    });
+
+    // Remove Note Member
+    $(".note-members").on('click', function() {
+        let userMail = $(this).data('member');
+        let fnid = $(this).data('fnid');
+        $.ajax({
+            type:"POST",
+            url:"/team/{% for startup in startup %}{{ startup.perma }}{% endfor %}/addFNMember/",
+            data: {
+                'oid': 3,
+                'fnid': fnid,
+                'userMail': userMail,
+                },
+            success: function(data){
+                if (data['success']) {
+                    history.go(0);
+                }
+                else if (data['failed'] == 0) {
+                    $.notify("Error: You cannot remove yourself", "error");
+                } else {
+                    $.notify("Error: You cannot add/remove members to the project you don't own", "error");
+                }
+            },
+            error: function(data){
+                $.notify("Error: Member couldn't added", "error");
+            }
+        })
+        .done(function (data) { 
+            //
+        });
+    });
+    
+});
+</script>
+{% endblock %}

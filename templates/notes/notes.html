@@ -1,0 +1,26 @@
+{% extends 'notes/layout.html' %}
+
+{% block SiteTitle %}Home{% endblock %}
+
+{% block content %}
+    {% if startup %}
+        <div class="jumbotron">
+            <h1 class="display-4">Hello, {{ user.name }}!</h1>
+            <p class="lead"><strong>Useful information</strong>: Default behavior is the nobody can access your Projects but the members. </p>
+            <h5>Necessary things to become a team member</h5>
+            <hr class="my-4">
+            <p>1-) Tell them to signup to Website</p>
+            <p>2-) Add this new member to the Team with email adress in the Team Settings</p>
+            <p>3-) Add this member to Project after whatever Folders and Notes that you want</p>
+        </div>
+    {% else %}
+        <div class="jumbotron">
+            <h1 class="display-4">Hello, {{ user.name }}!</h1>
+            <p class="lead">We happy to see to you here. You are not in any Team. If you're a founder, create your team</p>
+            <hr class="my-4">
+            <p>If you're an employee or a customer, send your e-mail adress to the team. You can say "Hey get me in!"</p>
+            <a class="btn btn-primary btn-lg" href="createTeam/" role="button">Create your team</a>
+        </div>
+    {% endif %}
+{% endblock %}
+ 

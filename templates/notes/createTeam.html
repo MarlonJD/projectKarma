@@ -1,0 +1,21 @@
+{% extends 'notes/layoutNoteless.html' %}
+{% block SiteTitle %}Home{% endblock %}
+
+{% block content %}
+<h1>Create Team</h1>
+<form action="/createTeam/" method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="form-group">
+        {{ field.errors }}
+        <label for="{{ field.id_for_label }}">{{ field.label_tag }}</label>
+         <input type="text" name="{{ field.html_name }}" id="{{ field.html_name }}" class="form-control" aria-describedby="{{ field.id_for_label }}" placeholder="{{ field.placeholder }}">
+         {% if field.help_text %}
+        <small id="emailHelp" class="form-text text-muted">{{ field.help_text|safe }}</small>
+        {% endif %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>
+{% endblock %}
+ 

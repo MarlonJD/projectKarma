@@ -1,0 +1,41 @@
+{% extends 'notes/layoutNoteless.html' %}
+
+{% block SiteTitle %}Home{% endblock %}
+
+{% block content %}
+    {% if startups %}
+        <div class="row">
+        {% for startup in startups %}
+            <div class="col-6 mb-4  ">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ startup.name }}</h5>
+                        <p class="card-text">{{ startup.perma }}</p>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Founders <span class="badge badge-secondary">{{ startup.employee.count }}</span> :</strong>
+                            {% for founder in startup.founder.all %} {{ founder.name }} {% endfor %}
+                        </li>
+                        <li class="list-group-item"><strong>Members <span class="badge badge-secondary">{{ startup.employee.count }}</span> :</strong>
+                            {% for employee in startup.employee.all %} {{ employee.name }} {% endfor %}
+                        </li>
+                    </ul>
+                    <div class="card-body">
+                        <a href="/team/{{ startup.perma }}/" class="card-link">Team Link</a>
+                        <a href="/team/{{ startup.perma }}/settings/" class="card-link">Team Settings</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="jumbotron">
+            <h1 class="display-4">Hello, {{ user.name }}!</h1>
+            <p class="lead">We happy to see to you here. You are not in any Team. If you're a founder, create your team</p>
+            <hr class="my-4">
+            <p>If you're an employee or a customer, send your e-mail adress to the team. You can say "Hey get me in!"</p>
+            <a class="btn btn-primary btn-lg" href="createTeam/" role="button">Create your team</a>
+        </div>
+    {% endif %}
+{% endblock %}
+ 
