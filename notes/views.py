@@ -117,7 +117,7 @@ def renamePFN(request):
     try:
         ipfn = int(request.POST["pfn"])
         p = pfn.objects.get(pk=ipfn)
-        if request.user in p.creator.all():
+        if request.user == p.creator:
             np = pfn.objects.get(pk=ipfn)
         else:
             return JsonResponse({'permissionError': 'Cannot do that'})
