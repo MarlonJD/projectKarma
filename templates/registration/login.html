@@ -17,19 +17,20 @@
           </div>
         {% endif %}
       {% endif %}
-      <img class="mb-4 col-12" src="https://getbootstrap.com/docs/4.1/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
-      <h1 class="h3 col-12 mb-4 font-weight-normal text-center">Please sign in</h1>
-      <label for="{{ form.username.id_for_label }}" class="sr-only">{{ form.username.label_tag }}</label>
-      <input type="email" id="{{ form.username.id_for_label }}" name="{{ form.username.html_name }}"  class="form-control" placeholder="Email address" required autofocus>
-      <label for="{{ form.password.id_for_label }}" class="sr-only">{{ form.password.label_tag }}</label>
-      <input type="password" id="{{ form.password.id_for_label }}" name="{{ form.password.html_name }}" class="form-control" placeholder="Password" required>
-      <input type="hidden" name="next" value="{{ next }}" />
-      <div class="mb-3">
-          <a href="{% url 'password_reset' %}">Lost password?</a>
+      <div class="col-12 text-center mb-3">
+          <div class="" style="font-family: 'Indie Flower', cursive; font-size:5em; color:darkcyan; font-weight:600;">Noyte</div>
       </div>
-        <button class="btn btn-lg btn-primary btn-block col-8" value="login" type="submit">Sign in</button>
-        <a href="{% url 'signup' %}" class="btn btn-lg btn-outline-info ml-auto col-4">Signup</a>
-      <p class="col-12 mt-5 text-muted text-center">&copy; 2018 Noyte. Burak Karahan</p>
+      <label for="{{ form.username.id_for_label }}" class="sr-only">{{ form.username.label_tag }}</label>
+      <input type="email" id="{{ form.username.id_for_label }}" name="{{ form.username.html_name }}"  class="form-control rounded" placeholder="Email address" required autofocus>
+      <label for="{{ form.password.id_for_label }}" class="sr-only">{{ form.password.label_tag }}</label>
+      <input type="password" id="{{ form.password.id_for_label }}" name="{{ form.password.html_name }}" class="form-control rounded" placeholder="Password" required>
+      <input type="hidden" name="next" value="{{ next }}" />
+        <button class="btn btn-lg btn-primary btn-block col-12" style="background-color: darkcyan; border-color: darkcyan;" value="login" type="submit">Sign in</button>
+      <div class="col-12 mt-3 text-center">
+          Don't have an account? <a style="color: darkcyan;" href="{% url 'password_reset' %}">Sign Up</a></br>
+          <a href="{% url 'password_reset' %}" style="color: darkcyan;">Forgot your password?</a>
+      </div>
+      <p class="col-12 mt-5 text-muted text-center">&copy; 2019 <span style="font-family: 'Indie Flower', cursive; color:darkcyan; font-weight:600;">Noyte </span>. All Rights Reserved </br> Made with <i class="far fa-heart" style="color: red;"></i> by Burak Karahan</p>
     </div>
   </form>
 {% endblock %}

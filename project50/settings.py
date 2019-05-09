@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'wzs)1^(_&x!s40!r9x4at!m-6k725+$yd!(d66u8)wvwalfvhc'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'notes.apps.NotesConfig',
     'users.apps.UsersConfig',
+    'encrypted_model_fields',
 ]
 
 MIDDLEWARE = [
@@ -136,3 +137,4 @@ EMAIL_HOST_PASSWORD = '10051995z'
 EMAIL_PORT = 587
 
 AUTH_USER_MODEL = 'users.MyUser'
+FIELD_ENCRYPTION_KEY = 'jjzbCovlRGxLs7neWnKQNqac8ZnUwjSVECY41ZnFCgI='

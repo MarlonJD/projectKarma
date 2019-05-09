@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from django.conf import settings
 from users.models import MyUser
+from encrypted_model_fields.fields import EncryptedCharField
 
 # Startup Objects: User -> Startup
 class Startup(models.Model):
@@ -15,7 +16,7 @@ class Startup(models.Model):
 
 # Project Objects: Startup -> Project
 class Project(models.Model):
-    name = models.CharField(max_length=200)
+    name = EncryptedCharField(max_length=200)
     startup = models.ForeignKey(Startup, on_delete=models.CASCADE, related_name='startup_project_set')
     creator = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='creator_project_set')
     employee = models.ManyToManyField(MyUser, related_name='employee_project_set')
@@ -25,7 +26,7 @@ class Project(models.Model):
 
 # Folder Objects: Startup -> Project -> Folder
 class Folder(models.Model):
-    name = models.CharField(max_length=200)
+    name = EncryptedCharField(max_length=200)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='project_folder_set')
     creator = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='creator_folder_set')
     employee = models.ManyToManyField(MyUser, related_name='employee_folder_set')
@@ -36,8 +37,8 @@ class Folder(models.Model):
 # Notebook Objects: Startup -> Project -> Folder -> Notebook
 class Notebook(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=200)
-    content = models.CharField(max_length=20000, null=True)
+    name = EncryptedCharField(max_length=200)
+    content = EncryptedCharField(max_length=20000, null=True)
     folder = models.ForeignKey(Folder,on_delete=models.CASCADE, related_name='folder_notebook_set')
     creator = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='creator_notebook_set')
     employee = models.ManyToManyField(MyUser, related_name='employee_notebook_set')
