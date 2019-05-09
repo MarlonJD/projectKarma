@@ -25,7 +25,7 @@ SECRET_KEY = 'wzs)1^(_&x!s40!r9x4at!m-6k725+$yd!(d66u8)wvwalfvhc'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.noyte.com']
 
 
 # Application definition
